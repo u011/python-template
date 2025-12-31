@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# Wrapper script for running uv-managed CLI tools
+# Place in project bin/ and symlink to PATH, or add bin/ to PATH
+#
+# Usage: ln -s "$(pwd)/bin/run" ~/.local/bin/{project}
+#    or: ./bin/run _install
+
+set -euo pipefail
+
+# Find project root (where pyproject.toml lives)
+find_project_root() {
+    local dir="$PWD"
+    while [[ "$dir" != "/" ]]; do
+        [[ -f "$dir/pyproject.toml" ]] && echo "$dir" && return
+        dir="$(dirname "$dir")"
+    done
+    return 1
+}
+
+# Get CLI script name from [project.scripts] section of pyproject.toml
+get_script_name() {
+    local root="$1"
+    # Extract first script name from [project.scripts] section
+    awk '/^\[project\.scripts\]/{found=1; next} found && /^[a-zA-Z]/{print $1; exit}' "$root/pyproject.toml"
+}
+
+# Install symlink to ~/.local/bin/{script_name}
+do_install() {
+    local script_path
+    script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+
+    local project_root
+    project_root="$(dirname "$script_path")"
+    [[ -f "$project_root/../pyproject.toml" ]] && project_root="$(cd "$project_root/.." && pwd)"
+
+    local script_name
+    script_name="$(get_script_name "$project_root")"
+
+    if [[ -z "$script_name" ]]; then
+        echo "Error: No [project.scripts] found in pyproject.toml" >&2
+        exit 1
+    fi
+
+    local target="$HOME/.local/bin/$script_name"
+    mkdir -p "$HOME/.local/bin"
+
+    if [[ -L "$target" ]]; then
+        rm "$target"
+        echo "Replaced: $target -> $script_path"
+    elif [[ -e "$target" ]]; then
+        echo "Error: $target exists and is not a symlink" >&2
+        exit 1
+    else
+        echo "Created: $target -> $script_path"
+    fi
+
+    ln -s "$script_path" "$target"
+}
+
+main() {
+    # Handle _install command
+    if [[ "${1:-}" == "_install" ]]; then
+        do_install
+        exit 0
+    fi
+
+    local script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+    # Try script's parent directory first, then search upward from cwd
+    local project_root
+    if [[ -f "$script_dir/../pyproject.toml" ]]; then
+        project_root="$(cd "$script_dir/.." && pwd)"
+    elif project_root="$(find_project_root)"; then
+        :
+    else
+        echo "Error: No pyproject.toml found" >&2
+        exit 1
+    fi
+
+    local script_name
+    script_name="$(get_script_name "$project_root")"
+
+    if [[ -z "$script_name" ]]; then
+        echo "Error: No [project.scripts] found in pyproject.toml" >&2
+        exit 1
+    fi
+
+    cd "$project_root"
+    exec uv run "$script_name" "$@"
+}
+
+main "$@"

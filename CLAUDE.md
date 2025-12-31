@@ -10,6 +10,24 @@ uv run ruff check src tests          # lint
 uv run ruff format src tests         # format
 ```
 
+## Shell Wrapper (optional)
+
+Skip typing `uv run` every time by creating a symlink:
+
+```bash
+# Option 1: Symlink to ~/.local/bin (add to PATH if needed)
+ln -s "$(pwd)/bin/run" ~/.local/bin/{project}
+
+# Option 2: Add project bin/ to PATH in shell config
+# fish: fish_add_path (pwd)/bin
+# bash: export PATH="$(pwd)/bin:$PATH"
+
+# Now run directly
+{project} --help
+```
+
+The `bin/run` wrapper auto-detects the project root and runs via `uv run`.
+
 ## Project Structure
 
 ```
@@ -17,6 +35,8 @@ uv run ruff format src tests         # format
 ├── CLAUDE.md           # agent instructions (this file)
 ├── pyproject.toml      # project config, deps, tools
 ├── uv.lock             # lockfile (committed)
+├── bin/
+│   └── run             # shell wrapper (symlink to PATH)
 ├── src/
 │   └── {project}/
 │       ├── __init__.py # version only
