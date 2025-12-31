@@ -1,0 +1,11 @@
+# {PROJECT} Default Configuration
+# This file contains default settings. Override by creating config/local.toml
+
+[general]
+verbose = false
+timeout = 30
+tags = []
+
+# Add your default configuration sections below
+# [section_name]
+# key = "value"

@@ -37,16 +37,42 @@ The `bin/run` wrapper auto-detects the project root and runs via `uv run`.
 ├── uv.lock             # lockfile (committed)
 ├── bin/
 │   └── run             # shell wrapper (symlink to PATH)
+├── config/
+│   ├── default.toml    # default settings (versioned)
+│   └── local.toml      # local overrides (gitignored)
 ├── src/
 │   └── {project}/
 │       ├── __init__.py # version only
 │       ├── cli.py      # typer app, entry point
+│       ├── config.py   # config loading from config/
 │       ├── core.py     # business logic
 │       ├── models.py   # pydantic models
 │       └── shell.py    # shell command utilities (sh library)
 └── tests/
     ├── conftest.py     # shared fixtures
     └── test_core.py
+```
+
+## Configuration
+
+Configuration lives in `config/` (inside the repo, not `~/.config`):
+
+```bash
+config/
+├── default.toml    # versioned defaults (committed)
+└── local.toml      # local overrides (gitignored)
+```
+
+**Priority** (highest to lowest):
+1. CLI arguments (`--verbose`, etc.)
+2. Environment variables (`{PROJECT}_VERBOSE=1`)
+3. `config/local.toml` (local overrides)
+4. `config/default.toml` (defaults)
+
+**Commands:**
+```bash
+{project} config              # show current config
+cp config/default.toml config/local.toml  # create local overrides
 ```
 
 ## Code Rules

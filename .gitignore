@@ -33,3 +33,7 @@ htmlcov/
 # Project-specific
 data/
 *.log
+
+# Local config (keep default.toml, ignore local overrides)
+config/local.toml
+config/*.local.toml
