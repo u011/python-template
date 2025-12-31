@@ -4,11 +4,16 @@ from typing import Annotated
 import typer
 from rich.console import Console
 
+from .commands import items
 from .config import load_config
 from .core import process_file
 
 app = typer.Typer(help="{PROJECT} CLI", no_args_is_help=True)
 console = Console()
+
+# Mount subcommand groups (modular CLI pattern)
+# Usage: {project} items list, {project} items add, etc.
+app.add_typer(items.app, name="items")
 
 
 @app.command()

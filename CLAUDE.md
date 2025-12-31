@@ -43,11 +43,14 @@ The `bin/run` wrapper auto-detects the project root and runs via `uv run`.
 ├── src/
 │   └── {project}/
 │       ├── __init__.py # version only
-│       ├── cli.py      # typer app, entry point
+│       ├── cli.py      # main typer app, mounts subcommands
 │       ├── config.py   # config loading from config/
 │       ├── core.py     # business logic
 │       ├── models.py   # pydantic models
-│       └── shell.py    # shell command utilities (sh library)
+│       ├── shell.py    # shell command utilities (sh library)
+│       └── commands/   # subcommand modules (modular CLI)
+│           ├── __init__.py
+│           └── items.py    # example: {project} items list|add
 └── tests/
     ├── conftest.py     # shared fixtures
     └── test_core.py
@@ -91,7 +94,8 @@ cp config/default.toml config/local.toml  # create local overrides
 - Absolute imports from package root
 
 ### Files
-- Split at ~200-300 lines
+- Keep under 400 LOC (agent-friendly context windows)
+- Split at ~200-300 lines when practical
 - One class/concern per file
 - No `utils.py` dumping grounds
 
@@ -115,8 +119,13 @@ from typing import Annotated
 import typer
 from rich.console import Console
 
+from .commands import items  # subcommand modules
+
 app = typer.Typer(help="{PROJECT} CLI", no_args_is_help=True)
 console = Console()
+
+# Mount subcommand groups
+app.add_typer(items.app, name="items")  # → {project} items list|add|remove
 
 @app.command()
 def cmd(
@@ -127,6 +136,28 @@ def cmd(
     """Command description."""
     console.print(f"[green]Processing:[/green] {path}")
 ```
+
+### Modular CLI (subcommands)
+```python
+# commands/items.py - each group in its own file
+import typer
+from rich.console import Console
+
+app = typer.Typer(help="Manage items")
+console = Console()
+
+@app.command()
+def list():
+    """List all items."""
+    console.print("Items: ...")
+
+@app.command()
+def add(name: str):
+    """Add an item."""
+    console.print(f"[green]Added:[/green] {name}")
+```
+
+Usage: `{project} items list`, `{project} items add foo`
 
 ### Pydantic Model
 ```python
