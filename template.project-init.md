@@ -86,6 +86,7 @@ myproject/
 | `cli.py` | Typer commands, console output | Always exists |
 | `core.py` | Main logic, algorithms | Always exists |
 | `models.py` | Pydantic models, data structures | Always exists |
+| `shell.py` | Shell commands via sh (rm→rip, rg, fd) | Always exists |
 | `config.py` | Config loading (TOML, env) | When app needs config file |
 | `api.py` | HTTP client, external services | When calling APIs |
 | `db.py` | Database operations | When using database |

@@ -22,7 +22,8 @@ uv run ruff format src tests         # format
 │       ├── __init__.py # version only
 │       ├── cli.py      # typer app, entry point
 │       ├── core.py     # business logic
-│       └── models.py   # pydantic models
+│       ├── models.py   # pydantic models
+│       └── shell.py    # shell command utilities (sh library)
 └── tests/
     ├── conftest.py     # shared fixtures
     └── test_core.py
@@ -102,6 +103,30 @@ def test_func(input, expected):
     assert func(input) == expected
 ```
 
+### Shell Commands (sh library)
+```python
+from {project}.shell import rm, rg, fd, run, sh
+
+# Safe delete using rip (sends to trash)
+rm("unwanted_file.txt")
+rm("-rf", "old_directory/")
+
+# Search with ripgrep - use rg directly, don't rename
+for match in rg("TODO", "src/", _iter=True):
+    print(match.strip())
+
+# Find files with fd - use fd directly, don't rename
+python_files = fd("-e", "py", "-t", "f")
+
+# Stream output line by line
+for line in rg("pattern", ".", _iter=True, _ok_code=[0, 1]):
+    process(line)
+
+# Any command via run() or sh
+run("git", "status", "--short")
+sh.docker.ps("-a")
+```
+
 ## Commands Reference
 
 ```bash
@@ -130,3 +155,5 @@ uv run ruff format .             # format
 - Add "just in case" flexibility
 - Use `os.path` (use pathlib)
 - Skip type hints
+- Use `subprocess` directly (use `shell.py` with sh library)
+- Rename `rg`/`fd` to grep/find (keep modern names)
