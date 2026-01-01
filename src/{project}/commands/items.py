@@ -4,14 +4,15 @@ Example of modular CLI using Typer's add_typer() pattern.
 Each command group lives in its own file under commands/.
 """
 
-from pathlib import Path
 from typing import Annotated
 
 import typer
 from rich.console import Console
 from rich.table import Table
 
-app = typer.Typer(help="Manage items")
+from .. import TYPER_SETTINGS
+
+app = typer.Typer(help="Manage items", context_settings=TYPER_SETTINGS)
 console = Console()
 
 

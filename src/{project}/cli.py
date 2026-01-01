@@ -4,11 +4,16 @@ from typing import Annotated
 import typer
 from rich.console import Console
 
+from . import TYPER_SETTINGS
 from .commands import items
 from .config import load_config
 from .core import process_file
 
-app = typer.Typer(help="{PROJECT} CLI", no_args_is_help=True)
+app = typer.Typer(
+    help="{PROJECT} CLI",
+    no_args_is_help=True,
+    context_settings=TYPER_SETTINGS,
+)
 console = Console()
 
 # Mount subcommand groups (modular CLI pattern)

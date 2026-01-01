@@ -42,7 +42,7 @@ The `bin/run` wrapper auto-detects the project root and runs via `uv run`.
 │   └── local.toml      # local overrides (gitignored)
 ├── src/
 │   └── {project}/
-│       ├── __init__.py # version only
+│       ├── __init__.py # version + TYPER_SETTINGS
 │       ├── cli.py      # main typer app, mounts subcommands
 │       ├── config.py   # config loading from config/
 │       ├── core.py     # business logic
@@ -107,7 +107,8 @@ cp config/default.toml config/local.toml  # create local overrides
 - `Field(default_factory=list)` for mutable defaults
 
 ### CLI (typer)
-- `no_args_is_help=True` on app
+- `no_args_is_help=True` on main app
+- `context_settings=TYPER_SETTINGS` on all Typer() instances (import from package root)
 - Rich console for output
 - Annotated args with help text
 
@@ -119,9 +120,14 @@ from typing import Annotated
 import typer
 from rich.console import Console
 
-from .commands import items  # subcommand modules
+from . import TYPER_SETTINGS
+from .commands import items
 
-app = typer.Typer(help="{PROJECT} CLI", no_args_is_help=True)
+app = typer.Typer(
+    help="{PROJECT} CLI",
+    no_args_is_help=True,
+    context_settings=TYPER_SETTINGS,
+)
 console = Console()
 
 # Mount subcommand groups
@@ -143,7 +149,9 @@ def cmd(
 import typer
 from rich.console import Console
 
-app = typer.Typer(help="Manage items")
+from .. import TYPER_SETTINGS
+
+app = typer.Typer(help="Manage items", context_settings=TYPER_SETTINGS)
 console = Console()
 
 @app.command()
