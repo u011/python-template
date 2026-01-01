@@ -7,6 +7,21 @@
 
 set -euo pipefail
 
+# Resolve symlinks to get the real path of a file
+resolve_symlink() {
+    local path="$1"
+    while [[ -L "$path" ]]; do
+        local link_target
+        link_target="$(readlink "$path")"
+        # Handle relative symlinks
+        if [[ "$link_target" != /* ]]; then
+            link_target="$(dirname "$path")/$link_target"
+        fi
+        path="$link_target"
+    done
+    echo "$path"
+}
+
 # Find project root (where pyproject.toml lives)
 find_project_root() {
     local dir="$PWD"
@@ -27,7 +42,8 @@ get_script_name() {
 # Install symlink to ~/.local/bin/{script_name}
 do_install() {
     local script_path
-    script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+    script_path="$(resolve_symlink "${BASH_SOURCE[0]}")"
+    script_path="$(cd "$(dirname "$script_path")" && pwd)/$(basename "$script_path")"
 
     local project_root
     project_root="$(dirname "$script_path")"
@@ -64,8 +80,10 @@ main() {
         exit 0
     fi
 
+    local script_path
+    script_path="$(resolve_symlink "${BASH_SOURCE[0]}")"
     local script_dir
-    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    script_dir="$(cd "$(dirname "$script_path")" && pwd)"
 
     # Try script's parent directory first, then search upward from cwd
     local project_root
